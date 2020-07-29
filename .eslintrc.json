@@ -3,7 +3,16 @@
     "browser": true,
     "es6": true
   },
-  "extends": ["plugin:react/recommended", "airbnb", "prettier", "plugin:jest/recommended"],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended",
+    "airbnb",
+    "airbnb/hooks",
+    "prettier",
+    "prettier/@typescript-eslint",
+    "prettier/react"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -24,6 +33,7 @@
     "import/extensions": [1, "never", {}],
     "import/no-unresolved": [1],
     "react/prop-types": [0],
-    "react/jsx-one-expression-per-line": [1, {"allow": "single-child"}]
+    "react/jsx-one-expression-per-line": [1, {"allow": "single-child"}],
+    "@typescript-eslint/no-empty-interface": [1, {"allowSingleExtends": false}]
   }
 }

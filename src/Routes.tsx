@@ -1,8 +1,20 @@
 import React from 'react';
-import {} from 'react-router-dom';
+import {Switch, Route} from 'react-router-dom';
 
-const Routes = () => {
-  return <div>Routes</div>;
+import Home from 'pages/Home';
+import Login from 'pages/Login';
+
+const Routes: React.FC = () => {
+  return (
+    <Switch>
+      <Route path="/login">
+        <Login />
+      </Route>
+      <Route path="/">
+        <Home />
+      </Route>
+    </Switch>
+  );
 };
 
 export default Routes;
