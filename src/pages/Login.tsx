@@ -1,9 +1,33 @@
-import React from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import styled from 'styled-components';
+import {auth} from 'services/firebase';
+
 import {Button, Grid} from '@material-ui/core';
 import {ReactComponent as Logo} from 'assets/react-pizzaria-pedidos/logo-react-zzaria.svg';
 
+import {User} from 'firebase';
+
 const Login: React.FC = () => {
+  const [userLogged, setUserLogged] = useState<null | User>(null);
+
+  useEffect(() => {
+    auth().onAuthStateChanged(user => setUserLogged(user));
+  }, []);
+
+  const handleLoginWithGithub = useCallback(() => {
+    const provider = new auth.GithubAuthProvider();
+    auth().signInWithRedirect(provider);
+  }, []);
+
+  const handleLogoutWithGithub = useCallback(async () => {
+    try {
+      await auth().signOut();
+      setUserLogged(null);
+    } catch (error) {
+      console.log(error.message);
+    }
+  }, []);
+
   return (
     <Container>
       <Grid container spacing={5} justify="center">
@@ -11,7 +35,11 @@ const Login: React.FC = () => {
           <MainLogo />
         </Grid>
         <Grid item container xs={12} justify="center">
-          <GithubButton>Entrar com o Github</GithubButton>
+          {userLogged ? (
+            <GithubButton onClick={handleLogoutWithGithub}>Sair</GithubButton>
+          ) : (
+            <GithubButton onClick={handleLoginWithGithub}>Entrar com o Github</GithubButton>
+          )}
         </Grid>
       </Grid>
     </Container>
