@@ -1,32 +1,105 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import styled from 'styled-components';
+
+import {useDispatch, useSelector} from 'react-redux';
+import {AuthReducerState} from 'redux-react/reducers/auth-reducer/types';
+import Store from 'redux-react/store/types';
+import {
+  LOGIN_START,
+  LOGIN_SUCCESS,
+  LOGIN_FAIL,
+  LOGOUT_START,
+  LOGOUT_SUCCESS,
+  LOGOUT_FAIL,
+} from 'redux-react/actions/auth-reducer';
+
 import {auth} from 'services/firebase';
 
 import {Button, Grid} from '@material-ui/core';
 import {ReactComponent as Logo} from 'assets/react-pizzaria-pedidos/logo-react-zzaria.svg';
 
-import {User} from 'firebase';
-
 const Login: React.FC = () => {
-  const [userLogged, setUserLogged] = useState<null | User>(null);
+  const dispatch = useDispatch();
+
+  const {
+    logout: {start: startLogout},
+    login: {start: startLogin},
+    user: userData,
+  } = useSelector<Store, AuthReducerState>(state => state.authReducer);
 
   useEffect(() => {
-    auth().onAuthStateChanged(user => setUserLogged(user));
-  }, []);
+    auth().onAuthStateChanged(user => {
+      console.log('user mudou!!!');
+      const payload = {
+        user: {
+          uid: user?.uid,
+          name: user?.displayName,
+        },
+      };
+
+      const action = {type: '', payload};
+
+      dispatch(action);
+    });
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!startLogin) return;
+
+    const login = async () => {
+      try {
+        const provider = new auth.GithubAuthProvider();
+        const {user} = await auth().signInWithPopup(provider);
+
+        const payload = {
+          user: {
+            name: user?.displayName,
+            uid: user?.uid,
+          },
+        };
+
+        dispatch({type: LOGIN_SUCCESS, payload});
+      } catch (error) {
+        const action = {
+          type: LOGIN_FAIL,
+          payload: {errorMessage: error.message},
+        };
+
+        dispatch(action);
+      }
+    };
+
+    login();
+  }, [dispatch, startLogin]);
+
+  useEffect(() => {
+    if (!startLogout) return;
+
+    const logout = async () => {
+      try {
+        await auth().signOut();
+
+        dispatch({type: LOGOUT_SUCCESS});
+      } catch (error) {
+        const action = {
+          type: LOGOUT_FAIL,
+          payload: {errorMessage: error.message},
+        };
+
+        dispatch(action);
+      }
+    };
+
+    logout();
+  }, [dispatch, startLogout]);
 
   const handleLoginWithGithub = useCallback(() => {
-    const provider = new auth.GithubAuthProvider();
-    auth().signInWithRedirect(provider);
-  }, []);
+    dispatch({type: LOGIN_START});
+  }, [dispatch]);
 
-  const handleLogoutWithGithub = useCallback(async () => {
-    try {
-      await auth().signOut();
-      setUserLogged(null);
-    } catch (error) {
-      console.log(error.message);
-    }
-  }, []);
+  const handleLogoutWithGithub = useCallback(() => {
+    dispatch({type: LOGOUT_START});
+  }, [dispatch]);
 
   return (
     <Container>
@@ -35,7 +108,7 @@ const Login: React.FC = () => {
           <MainLogo />
         </Grid>
         <Grid item container xs={12} justify="center">
-          {userLogged ? (
+          {userData ? (
             <GithubButton onClick={handleLogoutWithGithub}>Sair</GithubButton>
           ) : (
             <GithubButton onClick={handleLoginWithGithub}>Entrar com o Github</GithubButton>
